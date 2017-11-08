@@ -68,10 +68,10 @@ export default class Brain extends EventEmitter2 {
       }
       const message = line.substr(6);
       this.debugLogQuotaUsed += message.length;
-      utils.log('debug', {type: 'brainDebug', id: this.id, message, lastElapsed: this.usedTime, quotaUsed: this.debugLogQuotaUsed});
+      utils.log('debug', {type: 'brainDebug', id: this.id, message, quotaUsed: this.debugLogQuotaUsed});
       return;
     }
-    utils.log('debug', {action: 'receiveResponse', id: this.id, data: line, lastElapsed: this.usedTime});
+    utils.log('debug', {action: 'receiveResponse', id: this.id, data: line, totalElapsedMs: this.usedTime});
     if (!this.allowStdout) {
       this.emit('error', new errors.BrainError(this.id, `Not allowed to respond, but received "${line}".`));
       return;
@@ -80,7 +80,7 @@ export default class Brain extends EventEmitter2 {
   }
 
   writeInstruction(line) {
-    utils.log('debug', {action: 'sendRequest', id: this.id, data: line, lastElapsed: this.usedTime});
+    utils.log('debug', {action: 'sendRequest', id: this.id, data: line});
     this.process.stdin.write(`${line}\n`);
   }
 

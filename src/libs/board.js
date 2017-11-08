@@ -1,22 +1,10 @@
-import fs from 'fs';
 import assert from 'assert';
-import _ from 'lodash';
 
 import reversi from 'libreversi';
 import errors from './errors';
 import utils from './utils';
 
 export default class Board {
-
-  static FIELD_BLANK = reversi.STATE_EMPTY;
-  static FIELD_BLACK = reversi.STATE_BLACK;
-  static FIELD_WHITE = reversi.STATE_WHITE;
-
-  static BOARD_STATE_GOING = 0;
-  static BOARD_STATE_WIN_BLACK = 1;
-  static BOARD_STATE_WIN_WHITE = 2;
-  static BOARD_STATE_DRAW = 3;
-
   static translateField(fieldText) {
     assert(fieldText === 'black' || fieldText === 'white');
     if (fieldText === 'black') {
@@ -37,7 +25,7 @@ export default class Board {
 
   constructor(size) {
     assert(size > 0);
-    utils.log('debug', { action: 'createBoard', size });
+    utils.log('debug', {action: 'createBoard', size});
     this.size = size;
     this.clear();
   }
@@ -46,7 +34,7 @@ export default class Board {
     this.board = new reversi.Board(this.size);
     this.nextField = Board.FIELD_BLACK;
     this.state = Board.BOARD_STATE_GOING;
-    utils.log('debug', { action: 'clearBoard', board: this.getBoardMap(), nextField: this.nextField, newState: this.state });
+    utils.log('debug', {action: 'clearBoard', board: this.getBoardMap(), nextField: this.nextField, newState: this.state});
   }
 
   getBoardMap() {
@@ -59,7 +47,7 @@ export default class Board {
 
   place(row, col) {
     assert(this.state === Board.BOARD_STATE_GOING);
-    if (row < 0 || x >= this.size || col < 0 || col >= this.size) {
+    if (row < 0 || row >= this.size || col < 0 || col >= this.size) {
       throw new errors.UserError(`Invalid placement: Position out of board.`);
     }
     if (this.getBoardMap()[row][col] !== Board.FIELD_BLANK) {
@@ -74,20 +62,19 @@ export default class Board {
     }
 
     this.board.placeAt(field, row, col);
-    utils.log('debug', { action: 'place', position: [row, col], field });
+    utils.log('debug', {action: 'place', position: [row, col], field});
 
-    let switchField, ended;
+    let switchField;
+    let ended;
     if (this.board.hasAvailablePlacement(oppoField)) {
       switchField = true;
       ended = false;
+    } else if (this.board.hasAvailablePlacement(field)) {
+      switchField = false;
+      ended = false;
     } else {
-      if (this.board.hasAvailablePlacement(field)) {
-        switchField = false;
-        ended = false;
-      } else {
-        switchField = false;
-        ended = true;
-      }
+      switchField = false;
+      ended = true;
     }
     if (switchField) {
       this.nextField = oppoField;
@@ -101,10 +88,19 @@ export default class Board {
       } else {
         this.state = Board.BOARD_STATE_DRAW;
       }
-      const info = { action: 'roundEnd', board: this.getBoardMap(), analytics };
+      const info = {action: 'roundEnd', board: this.getBoardMap(), analytics};
       utils.log('debug', info);
     }
 
     return {row, col, ended};
   }
 }
+
+Board.FIELD_BLANK = reversi.STATE_EMPTY;
+Board.FIELD_BLACK = reversi.STATE_BLACK;
+Board.FIELD_WHITE = reversi.STATE_WHITE;
+
+Board.BOARD_STATE_GOING = 0;
+Board.BOARD_STATE_WIN_BLACK = 1;
+Board.BOARD_STATE_WIN_WHITE = 2;
+Board.BOARD_STATE_DRAW = 3;
