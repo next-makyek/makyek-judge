@@ -5,7 +5,7 @@ import errors from './errors';
 import utils from './utils';
 
 const DEBUG_SINGLE_LIMIT = 16 * 1024 + 10;
-const DEBUG_SUM_LIMIT = 1 * 1024;
+const DEBUG_SUM_LIMIT = 32 * 1024;
 
 export default class Brain extends EventEmitter2 {
   constructor(id, options) {
