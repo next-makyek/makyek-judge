@@ -53,7 +53,7 @@ var _utils2 = _interopRequireDefault(_utils);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var DEBUG_SINGLE_LIMIT = 16 * 1024 + 10;
-var DEBUG_SUM_LIMIT = 1 * 1024;
+var DEBUG_SUM_LIMIT = 32 * 1024;
 
 var Brain = function (_EventEmitter) {
   (0, _inherits3.default)(Brain, _EventEmitter);
