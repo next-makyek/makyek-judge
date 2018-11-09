@@ -40,4 +40,10 @@ jspm_packages
 
 .gulp-cache
 
+# sublime
 *.sublime-*
+
+# webstorm
+.idea/
+
+tmp/
