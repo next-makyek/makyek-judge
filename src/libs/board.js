@@ -30,6 +30,7 @@ export default class Board {
     this.size = size;
     this.roundLimit = roundLimit;
     this.roundsCount = 0;
+    this.steps = [];
     this.clear();
   }
 
@@ -44,13 +45,18 @@ export default class Board {
     return this.board.board;
   }
 
+  getSteps() {
+    return this.steps;
+  }
+
   place(x, y, option) {
+    this.steps.push([this.nextField, x, y, option]);
     assert(this.state === Board.BOARD_STATE_GOING);
     if (!this.board.inBound(x, y)) {
       throw new errors.UserError(`Invalid placement: Position out of board.`);
     }
     if (this.getBoardMap()[x][y] !== this.nextField) {
-      throw new errors.UserError(`Invalid placement: The position (${x}, ${y}) is not your stone.`);
+      throw new errors.UserError(`Invalid placement: The position (${x}, ${y}) is not your stone. ${this.getBoardMap()[x][y]}, ${this.nextField}`);
     }
 
     const field = this.nextField;

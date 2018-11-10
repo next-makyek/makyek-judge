@@ -471,7 +471,7 @@ function shutdown(exitCode, causedBy) {
       elapsedRoundTime: _lodash2.default.mapValues(brains, 'usedTime'),
       exitCausedBy: causedBy,
       currentBoard: board ? board.getBoardMap() : null,
-      boardOrder: board ? board.getOrderMap() : null,
+      // boardSteps: board ? board.getSteps() : null,
       roundConfig: roundConfig
     };
     _utils2.default.log('info', { action: 'summary', data: summaryData });

@@ -44,7 +44,7 @@ function shutdown(exitCode, causedBy) {
       elapsedRoundTime: _.mapValues(brains, 'usedTime'),
       exitCausedBy: causedBy,
       currentBoard: board ? board.getBoardMap() : null,
-      boardOrder: board ? board.getOrderMap() : null,
+      // boardSteps: board ? board.getSteps() : null,
       roundConfig,
     };
     utils.log('info', {action: 'summary', data: summaryData});

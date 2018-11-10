@@ -61,6 +61,7 @@ var Board = function () {
     this.size = size;
     this.roundLimit = roundLimit;
     this.roundsCount = 0;
+    this.steps = [];
     this.clear();
   }
 
@@ -78,14 +79,20 @@ var Board = function () {
       return this.board.board;
     }
   }, {
+    key: 'getSteps',
+    value: function getSteps() {
+      return this.steps;
+    }
+  }, {
     key: 'place',
     value: function place(x, y, option) {
+      this.steps.push([this.nextField, x, y, option]);
       (0, _assert2.default)(this.state === Board.BOARD_STATE_GOING);
       if (!this.board.inBound(x, y)) {
         throw new _errors2.default.UserError('Invalid placement: Position out of board.');
       }
       if (this.getBoardMap()[x][y] !== this.nextField) {
-        throw new _errors2.default.UserError('Invalid placement: The position (' + x + ', ' + y + ') is not your stone.');
+        throw new _errors2.default.UserError('Invalid placement: The position (' + x + ', ' + y + ') is not your stone. ' + this.getBoardMap()[x][y] + ', ' + this.nextField);
       }
 
       var field = this.nextField;
