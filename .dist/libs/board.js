@@ -53,12 +53,14 @@ var Board = function () {
     }
   }]);
 
-  function Board(size) {
+  function Board(size, roundLimit) {
     (0, _classCallCheck3.default)(this, Board);
 
     (0, _assert2.default)(size > 0);
     _utils2.default.log('debug', { action: 'createBoard', size: size });
     this.size = size;
+    this.roundLimit = roundLimit;
+    this.roundsCount = 0;
     this.clear();
   }
 
@@ -76,47 +78,44 @@ var Board = function () {
       return this.board.board;
     }
   }, {
-    key: 'getOrderMap',
-    value: function getOrderMap() {
-      return this.board.order;
-    }
-  }, {
     key: 'place',
-    value: function place(row, col) {
+    value: function place(x, y, option) {
       (0, _assert2.default)(this.state === Board.BOARD_STATE_GOING);
-      if (row < 0 || row >= this.size || col < 0 || col >= this.size) {
+      if (!this.board.inBound(x, y)) {
         throw new _errors2.default.UserError('Invalid placement: Position out of board.');
       }
-      if (this.getBoardMap()[row][col] !== Board.FIELD_BLANK) {
-        throw new _errors2.default.UserError('Invalid placement: There is already a stone at position (' + row + ', ' + col + ').');
+      if (this.getBoardMap()[x][y] !== this.nextField) {
+        throw new _errors2.default.UserError('Invalid placement: The position (' + x + ', ' + y + ') is not your stone.');
       }
 
       var field = this.nextField;
       var oppoField = Board.getOppositeField(field);
 
-      if (!this.board.canPlaceAt(field, row, col)) {
-        throw new _errors2.default.UserError('Invalid placement: Cannot put at stone at position (' + row + ', ' + col + ').');
+      if (!this.board.canPlaceAt(field, x, y, option)) {
+        throw new _errors2.default.UserError('Invalid placement: Cannot put at stone at position (' + x + ', ' + y + ').');
       }
 
-      this.board.placeAt(field, row, col);
-      _utils2.default.log('debug', { action: 'place', position: [row, col], field: field });
+      this.board.placeAt(field, x, y, option);
+      _utils2.default.log('debug', { action: 'place', position: [x, y], option: option, field: field });
 
-      var switchField = void 0;
-      var ended = void 0;
-      if (this.board.hasAvailablePlacement(oppoField)) {
-        switchField = true;
-        ended = false;
-      } else if (this.board.hasAvailablePlacement(field)) {
-        switchField = false;
-        ended = false;
-      } else {
-        switchField = false;
+      this.roundsCount++;
+      var ended = false;
+      if (!this.board.hasAvailablePlacement(oppoField)) {
         ended = true;
-      }
-      if (switchField) {
-        this.nextField = oppoField;
-      }
-      if (ended) {
+        if (this.nextField === Board.FIELD_BLACK) {
+          this.state = Board.BOARD_STATE_WIN_BLACK;
+        } else {
+          this.state = Board.BOARD_STATE_WIN_WHITE;
+        }
+
+        var info = {
+          action: 'roundEnd',
+          board: this.getBoardMap(),
+          causedBy: 'hasAvailablePlacement'
+        };
+        _utils2.default.log('debug', info);
+      } else if (this.roundsCount > this.roundLimit) {
+        ended = true;
         var analytics = this.board.count();
         if (analytics[Board.FIELD_BLACK] > analytics[Board.FIELD_WHITE]) {
           this.state = Board.BOARD_STATE_WIN_BLACK;
@@ -125,11 +124,36 @@ var Board = function () {
         } else {
           this.state = Board.BOARD_STATE_DRAW;
         }
-        var info = { action: 'roundEnd', board: this.getBoardMap(), analytics: analytics };
-        _utils2.default.log('debug', info);
+
+        var _info = {
+          action: 'roundEnd',
+          causedBy: 'roundLimit',
+          'roundsCount': this.roundsCount,
+          'roundLimit': this.roundLimit,
+          analytics: analytics,
+          board: this.getBoardMap()
+        };
+        _utils2.default.log('debug', _info);
       }
 
-      return { row: row, col: col, ended: ended };
+      this.nextField = oppoField;
+
+      // console.log(`field: ${field}, round: ${this.roundsCount}`);
+      // for (let i = 0; i < this.size; i++) {
+      //   let str = '';
+      //   for (let j = 0; j < this.size; j++) {
+      //     if (this.getBoardMap()[i][j] === Board.FIELD_BLACK) {
+      //       str += 'O';
+      //     } else if (this.getBoardMap()[i][j] === Board.FIELD_WHITE) {
+      //       str += 'X';
+      //     } else if (this.getBoardMap()[i][j] === Board.FIELD_BLANK) {
+      //       str += '.';
+      //     }
+      //   }
+      //   console.log(str);
+      // }
+
+      return { x: x, y: y, option: option, ended: ended };
     }
   }]);
   return Board;

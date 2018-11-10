@@ -62,11 +62,12 @@ var main = function () {
             argvConfig = _yargs.argv;
 
           case 17:
+
+            // set brainsConfig
             _iteratorNormalCompletion = true;
             _didIteratorError = false;
             _iteratorError = undefined;
             _context4.prev = 20;
-
             for (_iterator = (0, _getIterator3.default)(BRAIN_IDS); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
               id = _step.value;
 
@@ -154,14 +155,19 @@ var main = function () {
               }
             });
 
+            // set roundConfig
             roundConfig.size = parseInt(argvConfig['round.size'], 10);
             if (isNaN(roundConfig.size)) {
               roundConfig.size = DEFAULT_BOARD_SIZE;
             }
+            roundConfig.limit = parseInt(argvConfig['round.limit'], 10);
+            if (isNaN(roundConfig.limit)) {
+              roundConfig.limit = DEFAULT_ROUND_LIMIT;
+            }
 
             _utils2.default.log('debug', { action: 'initialize', roundConfig: roundConfig, brainsConfig: brainsConfig });
 
-            board = new _board2.default(roundConfig.size, roundConfig.size);
+            board = new _board2.default(roundConfig.size, roundConfig.limit);
 
             // Spawn brain processes
             _lodash2.default.forEach(brainsConfig, function (config, id) {
@@ -183,15 +189,15 @@ var main = function () {
             });
 
             if (!hasShutdown) {
-              _context4.next = 51;
+              _context4.next = 53;
               break;
             }
 
             return _context4.abrupt('return');
 
-          case 51:
-            _context4.prev = 51;
-            _context4.next = 54;
+          case 53:
+            _context4.prev = 53;
+            _context4.next = 56;
             return _promise2.default.all(_lodash2.default.map(brains, function (brain) {
               return brain.emitErrorOnException((0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
                 var resp;
@@ -223,36 +229,36 @@ var main = function () {
               })));
             }));
 
-          case 54:
-            _context4.next = 61;
+          case 56:
+            _context4.next = 63;
             break;
 
-          case 56:
-            _context4.prev = 56;
-            _context4.t4 = _context4['catch'](51);
+          case 58:
+            _context4.prev = 58;
+            _context4.t4 = _context4['catch'](53);
 
             if (!(_context4.t4 instanceof _errors2.default.UserError)) {
-              _context4.next = 60;
+              _context4.next = 62;
               break;
             }
 
             return _context4.abrupt('return');
 
-          case 60:
+          case 62:
             throw _context4.t4;
 
-          case 61:
+          case 63:
 
             // Send BEGIN or TURN
             lastPlacement = null;
 
-          case 62:
+          case 64:
             if (!(!hasShutdown && (lastPlacement === null || lastPlacement.ended === false))) {
-              _context4.next = 74;
+              _context4.next = 76;
               break;
             }
 
-            _context4.prev = 63;
+            _context4.prev = 65;
             return _context4.delegateYield( /*#__PURE__*/_regenerator2.default.mark(function _callee3() {
               var currentBrainId, brain, anotherBrain;
               return _regenerator2.default.wrap(function _callee3$(_context3) {
@@ -276,20 +282,20 @@ var main = function () {
 
                               case 2:
                                 resp = _context2.sent;
-                                m = resp.match(/^(-?\d+) (-?\d+)$/);
+                                m = resp.match(/^(-?\d+) (-?\d+) (-?\d+)$/);
 
                                 if (m) {
                                   _context2.next = 6;
                                   break;
                                 }
 
-                                throw new _errors2.default.UserError('Invalid response. Expect a placement format as "[X] [Y]".');
+                                throw new _errors2.default.UserError('Invalid response. Expect a placement format as "[X] [Y] [Z]".');
 
                               case 6:
-                                placement = board.place(parseInt(m[1], 10), parseInt(m[2], 10));
+                                placement = board.place(parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10));
 
                                 lastPlacement = placement;
-                                anotherBrain.writeInstruction('PLACE ' + placement.row + ' ' + placement.col);
+                                anotherBrain.writeInstruction('PLACE ' + placement.x + ' ' + placement.y + ' ' + placement.option);
 
                               case 9:
                               case 'end':
@@ -305,47 +311,47 @@ var main = function () {
                   }
                 }
               }, _callee3, _this);
-            })(), 't5', 65);
-
-          case 65:
-            _context4.next = 72;
-            break;
+            })(), 't5', 67);
 
           case 67:
-            _context4.prev = 67;
-            _context4.t6 = _context4['catch'](63);
+            _context4.next = 74;
+            break;
+
+          case 69:
+            _context4.prev = 69;
+            _context4.t6 = _context4['catch'](65);
 
             if (!(_context4.t6 instanceof _errors2.default.UserError)) {
-              _context4.next = 71;
+              _context4.next = 73;
               break;
             }
 
             return _context4.abrupt('return');
 
-          case 71:
+          case 73:
             throw _context4.t6;
 
-          case 72:
-            _context4.next = 62;
+          case 74:
+            _context4.next = 64;
             break;
 
-          case 74:
+          case 76:
 
             // Round ended
             code = void 0;
 
             if (!(board.state === _board2.default.BOARD_STATE_DRAW)) {
-              _context4.next = 79;
+              _context4.next = 81;
               break;
             }
 
             code = _exitCode2.default.EXIT_DRAW;
-            _context4.next = 88;
+            _context4.next = 90;
             break;
 
-          case 79:
+          case 81:
             if (!(board.state === _board2.default.BOARD_STATE_WIN_BLACK)) {
-              _context4.next = 83;
+              _context4.next = 85;
               break;
             }
 
@@ -354,12 +360,12 @@ var main = function () {
             } else {
               code = _exitCode2.default.EXIT_B1_WIN;
             }
-            _context4.next = 88;
+            _context4.next = 90;
             break;
 
-          case 83:
+          case 85:
             if (!(board.state === _board2.default.BOARD_STATE_WIN_WHITE)) {
-              _context4.next = 87;
+              _context4.next = 89;
               break;
             }
 
@@ -368,25 +374,25 @@ var main = function () {
             } else {
               code = _exitCode2.default.EXIT_B1_WIN;
             }
-            _context4.next = 88;
+            _context4.next = 90;
             break;
 
-          case 87:
+          case 89:
             throw new Error('Invalid board state ' + board.state);
 
-          case 88:
+          case 90:
 
             _lodash2.default.forEach(function (brain) {
               return brain.ignoreAllEvents = true;
             });
             shutdown(code, '(normal round exit)');
 
-          case 90:
+          case 92:
           case 'end':
             return _context4.stop();
         }
       }
-    }, _callee4, this, [[1, 9], [20, 24, 28, 36], [29,, 31, 35], [51, 56], [63, 67]]);
+    }, _callee4, this, [[1, 9], [20, 24, 28, 36], [29,, 31, 35], [53, 58], [65, 69]]);
   }));
 
   return function main() {
@@ -432,6 +438,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var MSG_CAUSED_BY_SYS = 'Judge system internal error';
 
+var DEFAULT_ROUND_LIMIT = 120;
 var DEFAULT_BOARD_SIZE = 16;
 var DEFAULT_START_TIMEOUT = 5000;
 var DEFAULT_MOVE_TIMEOUT = 5000;

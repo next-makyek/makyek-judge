@@ -1,6 +1,7 @@
 import assert from 'assert';
 
-import reversi from 'libreversi';
+
+import makyek from 'libreversi';
 import errors from './errors';
 import utils from './utils';
 
@@ -23,15 +24,17 @@ export default class Board {
     }
   }
 
-  constructor(size) {
+  constructor(size, roundLimit) {
     assert(size > 0);
     utils.log('debug', {action: 'createBoard', size});
     this.size = size;
+    this.roundLimit = roundLimit;
+    this.roundsCount = 0;
     this.clear();
   }
 
   clear() {
-    this.board = new reversi.Board(this.size);
+    this.board = new makyek.Board(this.size);
     this.nextField = Board.FIELD_BLACK;
     this.state = Board.BOARD_STATE_GOING;
     utils.log('debug', {action: 'clearBoard', board: this.getBoardMap(), nextField: this.nextField, newState: this.state});
@@ -41,45 +44,43 @@ export default class Board {
     return this.board.board;
   }
 
-  getOrderMap() {
-    return this.board.order;
-  }
-
-  place(row, col) {
+  place(x, y, option) {
     assert(this.state === Board.BOARD_STATE_GOING);
-    if (row < 0 || row >= this.size || col < 0 || col >= this.size) {
+    if (!this.board.inBound(x, y)) {
       throw new errors.UserError(`Invalid placement: Position out of board.`);
     }
-    if (this.getBoardMap()[row][col] !== Board.FIELD_BLANK) {
-      throw new errors.UserError(`Invalid placement: There is already a stone at position (${row}, ${col}).`);
+    if (this.getBoardMap()[x][y] !== this.nextField) {
+      throw new errors.UserError(`Invalid placement: The position (${x}, ${y}) is not your stone.`);
     }
 
     const field = this.nextField;
     const oppoField = Board.getOppositeField(field);
 
-    if (!this.board.canPlaceAt(field, row, col)) {
-      throw new errors.UserError(`Invalid placement: Cannot put at stone at position (${row}, ${col}).`);
+    if (!this.board.canPlaceAt(field, x, y, option)) {
+      throw new errors.UserError(`Invalid placement: Cannot put at stone at position (${x}, ${y}).`);
     }
 
-    this.board.placeAt(field, row, col);
-    utils.log('debug', {action: 'place', position: [row, col], field});
+    this.board.placeAt(field, x, y, option);
+    utils.log('debug', {action: 'place', position: [x, y], option, field});
 
-    let switchField;
-    let ended;
-    if (this.board.hasAvailablePlacement(oppoField)) {
-      switchField = true;
-      ended = false;
-    } else if (this.board.hasAvailablePlacement(field)) {
-      switchField = false;
-      ended = false;
-    } else {
-      switchField = false;
+    this.roundsCount++;
+    let ended = false;
+    if (!this.board.hasAvailablePlacement(oppoField)) {
       ended = true;
-    }
-    if (switchField) {
-      this.nextField = oppoField;
-    }
-    if (ended) {
+      if (this.nextField === Board.FIELD_BLACK) {
+        this.state = Board.BOARD_STATE_WIN_BLACK;
+      } else {
+        this.state = Board.BOARD_STATE_WIN_WHITE;
+      }
+
+      const info = {
+        action: 'roundEnd',
+        board: this.getBoardMap(),
+        causedBy: 'hasAvailablePlacement'
+      };
+      utils.log('debug', info);
+    } else if (this.roundsCount > this.roundLimit) {
+      ended = true;
       const analytics = this.board.count();
       if (analytics[Board.FIELD_BLACK] > analytics[Board.FIELD_WHITE]) {
         this.state = Board.BOARD_STATE_WIN_BLACK;
@@ -88,17 +89,42 @@ export default class Board {
       } else {
         this.state = Board.BOARD_STATE_DRAW;
       }
-      const info = {action: 'roundEnd', board: this.getBoardMap(), analytics};
+
+      const info = {
+        action: 'roundEnd',
+        causedBy: 'roundLimit',
+        'roundsCount': this.roundsCount,
+        'roundLimit': this.roundLimit,
+        analytics,
+        board: this.getBoardMap()
+      };
       utils.log('debug', info);
     }
 
-    return {row, col, ended};
+    this.nextField = oppoField;
+
+    // console.log(`field: ${field}, round: ${this.roundsCount}`);
+    // for (let i = 0; i < this.size; i++) {
+    //   let str = '';
+    //   for (let j = 0; j < this.size; j++) {
+    //     if (this.getBoardMap()[i][j] === Board.FIELD_BLACK) {
+    //       str += 'O';
+    //     } else if (this.getBoardMap()[i][j] === Board.FIELD_WHITE) {
+    //       str += 'X';
+    //     } else if (this.getBoardMap()[i][j] === Board.FIELD_BLANK) {
+    //       str += '.';
+    //     }
+    //   }
+    //   console.log(str);
+    // }
+
+    return {x, y, option, ended};
   }
 }
 
-Board.FIELD_BLANK = reversi.STATE_EMPTY;
-Board.FIELD_BLACK = reversi.STATE_BLACK;
-Board.FIELD_WHITE = reversi.STATE_WHITE;
+Board.FIELD_BLANK = makyek.STATE_EMPTY;
+Board.FIELD_BLACK = makyek.STATE_BLACK;
+Board.FIELD_WHITE = makyek.STATE_WHITE;
 
 Board.BOARD_STATE_GOING = 0;
 Board.BOARD_STATE_WIN_BLACK = 1;

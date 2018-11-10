@@ -11,6 +11,7 @@ import exitCode from './libs/exitCode';
 
 const MSG_CAUSED_BY_SYS = 'Judge system internal error';
 
+const DEFAULT_ROUND_LIMIT = 120;
 const DEFAULT_BOARD_SIZE = 16;
 const DEFAULT_START_TIMEOUT = 5000;
 const DEFAULT_MOVE_TIMEOUT = 5000;
@@ -65,6 +66,7 @@ function handleBrainExit(id) {
 }
 
 async function main() {
+  // set argvConfig
   if (argv.config) {
     try {
       argvConfig = JSON.parse((await fsp.readFile(argv.config)).toString());
@@ -76,6 +78,8 @@ async function main() {
   } else {
     argvConfig = argv;
   }
+
+  // set brainsConfig
   for (const id of BRAIN_IDS) {
     brainsConfig[id] = {};
   }
@@ -121,14 +125,19 @@ async function main() {
     }
   });
 
+  // set roundConfig
   roundConfig.size = parseInt(argvConfig['round.size'], 10);
   if (isNaN(roundConfig.size)) {
     roundConfig.size = DEFAULT_BOARD_SIZE;
   }
+  roundConfig.limit = parseInt(argvConfig['round.limit'], 10);
+  if (isNaN(roundConfig.limit)) {
+    roundConfig.limit = DEFAULT_ROUND_LIMIT;
+  }
 
   utils.log('debug', {action: 'initialize', roundConfig, brainsConfig});
 
-  board = new Board(roundConfig.size, roundConfig.size);
+  board = new Board(roundConfig.size, roundConfig.limit);
 
   // Spawn brain processes
   _.forEach(brainsConfig, (config, id) => {
@@ -177,13 +186,13 @@ async function main() {
         const resp = await brain.waitForOneResponse(brain.config.moveTimeout, () => {
           brain.writeInstruction('TURN');
         });
-        const m = resp.match(/^(-?\d+) (-?\d+)$/);
+        const m = resp.match(/^(-?\d+) (-?\d+) (-?\d+)$/);
         if (!m) {
-          throw new errors.UserError(`Invalid response. Expect a placement format as "[X] [Y]".`);
+          throw new errors.UserError(`Invalid response. Expect a placement format as "[X] [Y] [Z]".`);
         }
-        const placement = board.place(parseInt(m[1], 10), parseInt(m[2], 10));
+        const placement = board.place(parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10));
         lastPlacement = placement;
-        anotherBrain.writeInstruction(`PLACE ${placement.row} ${placement.col}`);
+        anotherBrain.writeInstruction(`PLACE ${placement.x} ${placement.y} ${placement.option}`);
       });
     } catch (err) {
       if (err instanceof errors.UserError) {
