@@ -35,7 +35,7 @@ export default class Board {
   }
 
   clear() {
-    this.board = new makyek.Board(this.size);
+    this.board = new makyek.Board();
     this.nextField = Board.FIELD_BLACK;
     this.state = Board.BOARD_STATE_GOING;
     utils.log('debug', {action: 'clearBoard', board: this.getBoardMap(), nextField: this.nextField, newState: this.state});
