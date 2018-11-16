@@ -68,7 +68,7 @@ var Board = function () {
   (0, _createClass3.default)(Board, [{
     key: 'clear',
     value: function clear() {
-      this.board = new _libreversi2.default.Board(this.size);
+      this.board = new _libreversi2.default.Board();
       this.nextField = Board.FIELD_BLACK;
       this.state = Board.BOARD_STATE_GOING;
       _utils2.default.log('debug', { action: 'clearBoard', board: this.getBoardMap(), nextField: this.nextField, newState: this.state });
