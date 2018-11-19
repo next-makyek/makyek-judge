@@ -89,10 +89,10 @@ var Board = function () {
       this.steps.push([this.nextField, x, y, option]);
       (0, _assert2.default)(this.state === Board.BOARD_STATE_GOING);
       if (!this.board.inBound(x, y)) {
-        throw new _errors2.default.UserError('Invalid placement: Position out of board.');
+        throw new _errors2.default.UserError('Invalid placement: The position (' + x + ', ' + y + ') out of board.');
       }
       if (this.getBoardMap()[x][y] !== this.nextField) {
-        throw new _errors2.default.UserError('Invalid placement: The position (' + x + ', ' + y + ') is not your stone. ' + this.getBoardMap()[x][y] + ', ' + this.nextField);
+        throw new _errors2.default.UserError('Invalid placement: The position (' + x + ', ' + y + ') is not your stone.');
       }
 
       if (option !== _libreversi2.default.OPTION_UP && option !== _libreversi2.default.OPTION_DOWN && option !== _libreversi2.default.OPTION_LEFT && option !== _libreversi2.default.OPTION_RIGHT && option !== _libreversi2.default.OPTION_UP_LEFT && option !== _libreversi2.default.OPTION_UP_RIGHT && option !== _libreversi2.default.OPTION_DOWN_LEFT && option !== _libreversi2.default.OPTION_DOWN_RIGHT) {
@@ -103,7 +103,7 @@ var Board = function () {
       var oppoField = Board.getOppositeField(field);
 
       if (!this.board.canPlaceAt(field, x, y, option)) {
-        throw new _errors2.default.UserError('Invalid placement: Cannot put at stone at position (' + x + ', ' + y + ').');
+        throw new _errors2.default.UserError('Invalid placement: Cannot move stone at position (' + x + ', ' + y + ') with option ' + option + '.');
       }
 
       this.board.placeAt(field, x, y, option);

@@ -53,10 +53,10 @@ export default class Board {
     this.steps.push([this.nextField, x, y, option]);
     assert(this.state === Board.BOARD_STATE_GOING);
     if (!this.board.inBound(x, y)) {
-      throw new errors.UserError(`Invalid placement: Position out of board.`);
+      throw new errors.UserError(`Invalid placement: The position (${x}, ${y}) out of board.`);
     }
     if (this.getBoardMap()[x][y] !== this.nextField) {
-      throw new errors.UserError(`Invalid placement: The position (${x}, ${y}) is not your stone. ${this.getBoardMap()[x][y]}, ${this.nextField}`);
+      throw new errors.UserError(`Invalid placement: The position (${x}, ${y}) is not your stone.`);
     }
 
     if (option !== makyek.OPTION_UP && option !== makyek.OPTION_DOWN
@@ -70,7 +70,7 @@ export default class Board {
     const oppoField = Board.getOppositeField(field);
 
     if (!this.board.canPlaceAt(field, x, y, option)) {
-      throw new errors.UserError(`Invalid placement: Cannot put at stone at position (${x}, ${y}).`);
+      throw new errors.UserError(`Invalid placement: Cannot move stone at position (${x}, ${y}) with option ${option}.`);
     }
 
     this.board.placeAt(field, x, y, option);
