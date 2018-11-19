@@ -95,6 +95,10 @@ var Board = function () {
         throw new _errors2.default.UserError('Invalid placement: The position (' + x + ', ' + y + ') is not your stone. ' + this.getBoardMap()[x][y] + ', ' + this.nextField);
       }
 
+      if (option !== _libreversi2.default.OPTION_UP && option !== _libreversi2.default.OPTION_DOWN && option !== _libreversi2.default.OPTION_LEFT && option !== _libreversi2.default.OPTION_RIGHT && option !== _libreversi2.default.OPTION_UP_LEFT && option !== _libreversi2.default.OPTION_UP_RIGHT && option !== _libreversi2.default.OPTION_DOWN_LEFT && option !== _libreversi2.default.OPTION_DOWN_RIGHT) {
+        throw new _errors2.default.UserError('Invalid option: The option ' + option + ' is not a valid option.');
+      }
+
       var field = this.nextField;
       var oppoField = Board.getOppositeField(field);
 
