@@ -59,6 +59,13 @@ export default class Board {
       throw new errors.UserError(`Invalid placement: The position (${x}, ${y}) is not your stone. ${this.getBoardMap()[x][y]}, ${this.nextField}`);
     }
 
+    if (option !== makyek.OPTION_UP && option !== makyek.OPTION_DOWN
+      && option !== makyek.OPTION_LEFT && option !== makyek.OPTION_RIGHT
+      && option !== makyek.OPTION_UP_LEFT && option !== makyek.OPTION_UP_RIGHT
+      && option !== makyek.OPTION_DOWN_LEFT && option !== makyek.OPTION_DOWN_RIGHT) {
+      throw new errors.UserError(`Invalid option: The option ${option} is not a valid option.`);
+    }
+
     const field = this.nextField;
     const oppoField = Board.getOppositeField(field);
 
