@@ -125,7 +125,7 @@ var Board = function () {
           causedBy: 'hasAvailablePlacement'
         };
         _utils2.default.log('debug', info);
-      } else if (this.roundsCount > this.roundLimit) {
+      } else if (this.roundsCount >= this.roundLimit) {
         ended = true;
         var analytics = this.board.count();
         if (analytics[Board.FIELD_BLACK] > analytics[Board.FIELD_WHITE]) {
