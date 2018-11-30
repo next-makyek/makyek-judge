@@ -92,7 +92,7 @@ export default class Board {
         causedBy: 'hasAvailablePlacement'
       };
       utils.log('debug', info);
-    } else if (this.roundsCount > this.roundLimit) {
+    } else if (this.roundsCount >= this.roundLimit) {
       ended = true;
       const analytics = this.board.count();
       if (analytics[Board.FIELD_BLACK] > analytics[Board.FIELD_WHITE]) {
