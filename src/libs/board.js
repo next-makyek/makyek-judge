@@ -133,7 +133,7 @@ export default class Board {
     //console.log('stepNum', stepNum)
     var loseFlag = 0
     let ended = false;
-    if (stepNum !== order.length - 2){
+    if (stepNum !== order.length - 2 || stepNum === 0){
       console.log('out point 1')
       loseFlag = 1
       ended = true
