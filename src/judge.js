@@ -12,7 +12,7 @@ import exitCode from './libs/exitCode';
 const MSG_CAUSED_BY_SYS = 'Judge system internal error';
 
 const DEFAULT_ROUND_LIMIT = 120;
-const DEFAULT_BOARD_SIZE = 16;
+const DEFAULT_BOARD_SIZE = 8;
 const DEFAULT_START_TIMEOUT = 5000;
 const DEFAULT_MOVE_TIMEOUT = 5000;
 const DEFAULT_ROUND_TIMEOUT = 180000;
@@ -186,13 +186,19 @@ async function main() {
         const resp = await brain.waitForOneResponse(brain.config.moveTimeout, () => {
           brain.writeInstruction('TURN');
         });
-        const m = resp.match(/^(-?\d+) (-?\d+) (-?\d+)$/);
-        if (!m) {
-          throw new errors.UserError(`Invalid response. Expect a placement format as "[X] [Y] [Z]".`);
-        }
-        const placement = board.place(parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10));
+        // const m = resp.match(/^(-?\d+) (-?\d+) (-?\d+)$/);
+        
+        //console.log('resp here')
+        //console.log(resp)
+      
+        const m = resp.split(" ");
+        //if (!m) {
+          //throw new errors.UserError(`Invalid response ${resp}. Expect a placement format as "x0 y0,x1 y1,...,n".`);
+        //}//
+        // const placement = board.place(parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10));
+        const placement = board.place(m);
         lastPlacement = placement;
-        anotherBrain.writeInstruction(`PLACE ${placement.x} ${placement.y} ${placement.option}`);
+        anotherBrain.writeInstruction(`PLACE ${resp}`);
       });
     } catch (err) {
       if (err instanceof errors.UserError) {

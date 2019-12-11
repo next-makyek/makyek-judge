@@ -282,22 +282,24 @@ var main = function () {
 
                               case 2:
                                 resp = _context2.sent;
-                                m = resp.match(/^(-?\d+) (-?\d+) (-?\d+)$/);
 
-                                if (m) {
-                                  _context2.next = 6;
-                                  break;
-                                }
+                                // const m = resp.match(/^(-?\d+) (-?\d+) (-?\d+)$/);
 
-                                throw new _errors2.default.UserError('Invalid response. Expect a placement format as "[X] [Y] [Z]".');
+                                //console.log('resp here')
+                                //console.log(resp)
 
-                              case 6:
-                                placement = board.place(parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10));
+                                m = resp.split(" ");
+                                //if (!m) {
+                                //throw new errors.UserError(`Invalid response ${resp}. Expect a placement format as "x0 y0,x1 y1,...,n".`);
+                                //}//
+                                // const placement = board.place(parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10));
+
+                                placement = board.place(m);
 
                                 lastPlacement = placement;
-                                anotherBrain.writeInstruction('PLACE ' + placement.x + ' ' + placement.y + ' ' + placement.option);
+                                anotherBrain.writeInstruction('PLACE ' + resp);
 
-                              case 9:
+                              case 7:
                               case 'end':
                                 return _context2.stop();
                             }
@@ -439,7 +441,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var MSG_CAUSED_BY_SYS = 'Judge system internal error';
 
 var DEFAULT_ROUND_LIMIT = 120;
-var DEFAULT_BOARD_SIZE = 16;
+var DEFAULT_BOARD_SIZE = 8;
 var DEFAULT_START_TIMEOUT = 5000;
 var DEFAULT_MOVE_TIMEOUT = 5000;
 var DEFAULT_ROUND_TIMEOUT = 180000;
