@@ -138,13 +138,8 @@ export default class Board {
     if (!patern.test(resp)) {
       console.log('out point 0')
       loseFlag = 1
-      ended = true
-      if (this.nextField === Board.FIELD_BLACK) {
-        this.state = Board.BOARD_STATE_WIN_WHITE;
-      } else {
-        this.state = Board.BOARD_STATE_WIN_BLACK;
-      }
-      return {ended};
+      this.board.board = tempBd
+      throw new errors.UserError(`Invalid placement: This is not a jump.`);
     }
     if (stepNum !== order.length - 2 || stepNum === 0){
       console.log('out point 1')
