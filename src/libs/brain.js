@@ -56,6 +56,7 @@ export default class Brain extends EventEmitter2 {
   }
 
   handleStdoutLine(line) {
+    const current = Date.now();
     if (this.processExited || this.ignoreAllEvents) {
       return;
     }
@@ -76,7 +77,7 @@ export default class Brain extends EventEmitter2 {
       this.emit('error', new errors.BrainError(this.id, `Not allowed to respond, but received "${line}".`));
       return;
     }
-    this.emit('response', line);
+    this.emit('response', line, current);
   }
 
   writeInstruction(line) {
@@ -110,8 +111,8 @@ export default class Brain extends EventEmitter2 {
       afterThis();
       const beginTime = Date.now();
 
-      this.once('response', data => {
-        const endTime = Date.now();
+      this.once('response', (data, endTime) => {
+        // const endTime = Date.now();
         if (endTime - beginTime > 0) {
           this.usedTime += (endTime - beginTime);
         }
