@@ -133,6 +133,19 @@ export default class Board {
     //console.log('stepNum', stepNum)
     var loseFlag = 0
     let ended = false;
+    let repeat = order[0];
+    let patern = new RegExp("^(\\d)(\\s\\d,\\d){" + repeat + "}$");
+    if (!patern.test(resp)) {
+      console.log('out point 0')
+      loseFlag = 1
+      ended = true
+      if (this.nextField === Board.FIELD_BLACK) {
+        this.state = Board.BOARD_STATE_WIN_WHITE;
+      } else {
+        this.state = Board.BOARD_STATE_WIN_BLACK;
+      }
+      return {ended};
+    }
     if (stepNum !== order.length - 2 || stepNum === 0){
       console.log('out point 1')
       loseFlag = 1
