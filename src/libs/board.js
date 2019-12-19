@@ -135,11 +135,11 @@ export default class Board {
     let ended = false;
     let repeat = order[0];
     let patern = new RegExp("^(\\d)(\\s\\d,\\d){" + repeat + "}$");
+    let resp = order.join(" ");
     if (!patern.test(resp)) {
       console.log('out point 0')
       loseFlag = 1
-      this.board.board = tempBd
-      throw new errors.UserError(`Invalid placement: This is not a jump.`);
+      throw new errors.UserError(`Invalid format: format mismatch.`);
     }
     if (stepNum !== order.length - 2 || stepNum === 0){
       console.log('out point 1')
