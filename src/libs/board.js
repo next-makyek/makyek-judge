@@ -50,6 +50,10 @@ export default class Board {
     return this.steps;
   }
 
+  _inBound(x, y) {
+    return x >= 0 && x < this.size && y >= 0 && y < this.size;
+  }
+
   _deepcopyArr(arr) {
     var outarr = [],len = arr.length;
     for (var i=0; i < len; i++) {
@@ -201,7 +205,7 @@ export default class Board {
     // check board state
     assert(this.state === Board.BOARD_STATE_GOING);
     // check postion is in bound
-    if (!this.board.inBound(x, y)) {
+    if (!this._inBound(x, y)) {
       if (this.nextField === Board.FIELD_BLACK) {
         this.state = Board.BOARD_STATE_WIN_WHITE;
       } else {
