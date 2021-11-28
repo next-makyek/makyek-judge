@@ -239,9 +239,10 @@ export default class Board {
     // check is last place
     if (this._isLastPlacement()) {
       this.state = Board.BOARD_STATE_DRAW;
+      return { "ended": true }
     }
     this.nextField = oppoField;
-    return true;
+    return { "ended": false };
   }
 }
 
