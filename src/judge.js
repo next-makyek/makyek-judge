@@ -137,7 +137,7 @@ async function main() {
 
   utils.log('debug', {action: 'initialize', roundConfig, brainsConfig});
 
-  board = new Board(roundConfig.size, roundConfig.limit);
+  board = new Board(roundConfig.size);
 
   // Spawn brain processes
   _.forEach(brainsConfig, (config, id) => {
