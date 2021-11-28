@@ -12,7 +12,7 @@ import exitCode from './libs/exitCode';
 const MSG_CAUSED_BY_SYS = 'Judge system internal error';
 
 const DEFAULT_ROUND_LIMIT = 120;
-const DEFAULT_BOARD_SIZE = 8;
+const DEFAULT_BOARD_SIZE = 12;
 const DEFAULT_START_TIMEOUT = 5000;
 const DEFAULT_MOVE_TIMEOUT = 5000;
 const DEFAULT_ROUND_TIMEOUT = 180000;
