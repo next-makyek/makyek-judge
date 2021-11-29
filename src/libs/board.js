@@ -235,6 +235,7 @@ export default class Board {
       } else {
         this.state = Board.BOARD_STATE_WIN_BLACK;
       }
+      return { "ended": true }
     }
     // check is last place
     if (this._isLastPlacement()) {
