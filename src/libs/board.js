@@ -6,6 +6,7 @@ import errors from './errors';
 import utils from './utils';
 
 export default class Board {
+
   static translateField(fieldText) {
     assert(fieldText === 'black' || fieldText === 'white');
     if (fieldText === 'black') {
@@ -24,18 +25,18 @@ export default class Board {
     }
   }
 
-  constructor(size, roundLimit) {
+  constructor(size) {
     assert(size > 0);
     utils.log('debug', {action: 'createBoard', size});
     this.size = size;
-    this.roundLimit = roundLimit;
-    this.roundsCount = 0;
     this.steps = [];
+    this.roundsCount = 0;
+    this.initialStoneNums = 4;
     this.clear();
   }
 
   clear() {
-    this.board = new makyek.Board();
+    this.board = new makyek.Board(this.size);
     this.nextField = Board.FIELD_BLACK;
     this.state = Board.BOARD_STATE_GOING;
     utils.log('debug', {action: 'clearBoard', board: this.getBoardMap(), nextField: this.nextField, newState: this.state});
@@ -49,7 +50,11 @@ export default class Board {
     return this.steps;
   }
 
-  deepcopyArr(arr) {
+  _inBound(x, y) {
+    return x >= 0 && x < this.size && y >= 0 && y < this.size;
+  }
+
+  _deepcopyArr(arr) {
     var outarr = [],len = arr.length;
     for (var i=0; i < len; i++) {
          outarr[i]=new Array();
@@ -60,321 +65,185 @@ export default class Board {
     return outarr;
   }
 
-  getMaxJumpTimes(field){
-    var currentBoard = this.getBoardMap()
-    let maxDepth = 0;
-    for(let i = 0; i < 8; ++i){
-        for (let j = 0; j < 8; ++j){
-          if (currentBoard[i][j] === field || currentBoard[i][j] ===  (field + 3) ){
-              var tempBoard = this.deepcopyArr(currentBoard) 
-              //console.log('dfs for', i, j)
-              let tempDepth = this.searchJumpTimes(i, j, 0, tempBoard,field);
-              //console.log('dfs searchjump out')
-              //console.log('tempdepth and maxdepth',tempDepth,maxDepth)
-              if (tempDepth > maxDepth){
-                //console.log('compare jump out')
-                maxDepth = tempDepth
-              }
-          }
-          //console.log('i,j', i,j)
-        }
-    }
-    //console.log('return maxdepth', maxDepth)
-    return maxDepth
-  }
-
-  searchJumpTimes(x, y, depth, tempBoard, field){
-    //console.log('x, y, depth', x, y, depth)
-    const oppoF = Board.getOppositeField(field)
-    
-    var direction = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
-    var curMaxDepth = depth
-    for (let k = 0; k < 4; ++k){
-      let newNeiborX = x + direction[k][0];
-      let newNeiborY = y + direction[k][1];
-      let newTargetX = newNeiborX + direction[k][0];
-      let newTargetY = newNeiborY + direction[k][1];
-      //console.log('tempboard', tempBoard)
-      //console.log('newNeiborx,y', newNeiborX,newNeiborY)
-      if (this.board.inBound(newTargetX,newTargetY)&&(tempBoard[newNeiborX][newNeiborY] === oppoF || tempBoard[newNeiborX][newNeiborY] === oppoF+3) && tempBoard[newTargetX][newTargetY] === 0){
-        //console.log('tempboard', tempBoard)
-        //console.log('dfs x y newNeiborx,y targetx y',x, y, newNeiborX,newNeiborY, newTargetX, newTargetY)
-        tempBoard[newTargetX][newTargetY] = field
-        tempBoard[x][y] = 0
-        tempBoard[newNeiborX][newNeiborY] = 0
-        let temp = this.searchJumpTimes(newTargetX, newTargetY, depth + 1, tempBoard, field)
-        if (temp > curMaxDepth){
-          curMaxDepth = temp
-        }
-        tempBoard[x][y] = field
-        tempBoard[newTargetX][newTargetY] = 0
-        tempBoard[newNeiborX][newNeiborY] = oppoF
+  _isFive(x, y, field) {
+    var count = 1;
+    // check vertical
+    for (var i = x + 1; true; i++){
+      if (i >= this.size) {
+        break;
+      }
+      if (this.board.board[i][y] !== field) {
+        break;
+      }
+      count++;
+      if (count >= 5) {
+        return true;
       }
     }
-    depth = curMaxDepth
-    
-    return depth
+    for (var i = x - 1; true; i--){
+      if (i < 0) {
+        break;
+      }
+      if (this.board.board[i][y] !== field) {
+        break;
+      }
+      count++;
+      if (count >= 5) {
+        return true;
+      }
+    }
+    // check horizontal
+    count = 1;
+    for (var i = y + 1; true; i++){
+      if (i >= this.size) {
+        break;
+      }
+      if (this.board.board[x][i] !== field) {
+        break;
+      }
+      count++;
+      if (count >= 5) {
+        return true;
+      }
+    }
+    for (var i = y - 1; true; i--){
+      if (i < 0) {
+        break;
+      }
+      if (this.board.board[x][i] !== field) {
+        break;
+      }
+      count++;
+      if (count >= 5) {
+        return true;
+      }
+    }
+    // check //
+    count = 1;
+    for (var i = 1; true; i++){
+      var new_x = x + i;
+      var new_y = y + i;
+      if (new_x >= this.size || new_y >= this.size) {
+        break;
+      }
+      if (this.board.board[new_x][new_y] !== field) {
+        break;
+      }
+      count++;
+      if (count >= 5) {
+        return true;
+      }
+    }
+    for (var i = 1; true; i++){
+      var new_x = x - i;
+      var new_y = y - i;
+      if (new_x < 0 || new_y < 0) {
+        break;
+      }
+      if (this.board.board[new_x][new_y] !== field) {
+        break;
+      }
+      count++;
+      if (count >= 5) {
+        return true;
+      } 
+    }
+    // check \\
+    count = 1;
+    for (var i = 1; true; i++){
+      var new_x = x + i;
+      var new_y = y - i;
+      if (new_x >= this.size || new_y < 0) {
+        break;
+      }
+      if (this.board.board[new_x][new_y] !== field) {
+        break;
+      }
+      count++;
+      if (count >= 5) {
+        return true;
+      }
+    }
+    for (var i = 1; true; i++){
+      var new_x = x - i;
+      var new_y = y + i;
+      if (new_x < 0 || new_y >= this.size) {
+        break;
+      }
+      if (this.board.board[new_x][new_y] !== field) {
+        break;
+      }
+      count++;
+      if (count >= 5) {
+        return true;
+      } 
+    }
+    return false;
+  }
+
+  _isLastPlacement() {
+    return this.roundsCount + this.initialStoneNums === this.size * this.size;
   }
 
   place(order) {
+    // order: "[X, Y]"
 
-    var stepNum = order[0] - 1
-    //console.log('order[0]', order[0])
-    //console.log('order[1]', order[1])
-    //console.log('order[2]', order[2])
-  
-    //this.steps.push([this.nextField, x, y, option]);
-    const field = this.nextField;
-    
-    const oppoField = Board.getOppositeField(field)
-    var maxJumpTimes = this.getMaxJumpTimes(field)
-
-    //console.log('maxJumpTimes', maxJumpTimes)
-    //console.log('stepNum', stepNum)
-    var loseFlag = 0
-    let ended = false;
-    let patern = new RegExp("^(\\d)(\\s\\d,\\d)+$");
-    let resp = order.join(" ");
-    if (!patern.test(resp)) {
-      console.log('out point 0')
-      loseFlag = 1
-      throw new errors.UserError(`Invalid format: format mismatch.`);
+    // get postion
+    let x, y;
+    try {
+      x = order[0];
+      y = order[1];
+    } catch (error) {
+      console.log("[ERROR] error in board.js place, error is:", error);
     }
-    if (stepNum !== order.length - 2 || stepNum === 0){
-      console.log('out point 1')
-      loseFlag = 1
-      ended = true
-      if (this.nextField === Board.FIELD_BLACK) {
-        this.state = Board.BOARD_STATE_WIN_WHITE;
-      } else {
-        this.state = Board.BOARD_STATE_WIN_BLACK;
-      }
-      return {ended};
-    }
-    if (0 < maxJumpTimes && maxJumpTimes != stepNum || maxJumpTimes === 0 && stepNum != 1){
-      loseFlag = 1
-      console.log('out point 3')
-    }else if(maxJumpTimes === 0 && stepNum === 1){
-      var curX = order[1][0] - '0'
-      var curY = order[1][2] - '0'
-      var nextX = order[2][0] - '0'
-      var nextY = order[2][2] - '0'
-      console.log('out point 4')
-      if(!(this.board.inBound(nextX, nextY) && Math.abs(curX - nextX) == 1 && Math.abs(curY - nextY) == 1 && this.board.canPlaceAt(field, curX, curY, nextX, nextY) )){
-        loseFlag = 1
-        console.log('out point 5')
-      }
-    }else {
-      var tempBd = this.deepcopyArr(this.getBoardMap()) 
-      
-      //console.log('after dfs', tempBd)
-      for (let i = 1; i <= stepNum; ++i){
-        //console.log('out point 6')
-        assert(this.state === Board.BOARD_STATE_GOING);
-        var curX = order[i][0] - '0'
-        var curY = order[i][2] - '0'
-        var nextX = order[i+1][0] - '0'
-        var nextY = order[i+1][2] - '0'
-        var neiborX = (curX + nextX)/2
-        var neiborY = (curY + nextY)/2
-        if (!(this.board.inBound(curX, curY) && this.board.inBound(nextX, nextY))) {
-          loseFlag = 1
-          this.board.board = tempBd
-          throw new errors.UserError(`Invalid placement: The position () out of board.`);
-        }
-        if (!( Math.abs(curX - nextX) == 2 &&  Math.abs(curY - nextY) == 2)) {
-          loseFlag = 1
-          this.board.board = tempBd
-          throw new errors.UserError(`Invalid placement: This is not a jump.`);
-        }
-        //if (!(this.getBoardMap()[neiborX][neiborY] === oppoField && this.getBoardMap()[nextX][nextY] === 0)) {
-        //  loseFlag = 1
-        //  this.board.board = tempBd
-        //  throw new errors.UserError(`Invalid placement: Invalid jump.`);
-        //}
-        if (!this.board.canPlaceAt(field, curX, curY, nextX, nextY)) {
-          loseFlag = 1
-          this.board.board = tempBd
-          throw new errors.UserError(`Invalid placement: Cannot move.`);
-        }
-        this.board.placeAt(field, curX, curY, nextX, nextY, false)
-        //if (this.getBoardMap()[curX][curY] !== this.nextField) {
-          //loseFlag = 1
-          //throw new errors.UserError(`Invalid placement: The position (${curX}, ${curY}) is not your stone.`);
-        //}
-      //if (!this.board.canPlaceAt(field, curX, curY, nextX, nextY)) {
-        //loseFlag = 1
-        //throw new errors.UserError(`Invalid placement: Cannot move stone at position (${nextX}, ${nextY}).`);
-      //}
-      // this.board.placeAt(field, curX, curY, nextX, nextY);
-      //utils.log('debug', {action: 'place', position: [x, y], option, field});    
-      }
-      //console.log('tempBd', tempBd)
-      this.board.board = tempBd
-      //console.log('board', this.getBoardMap(), this.board.board)
-    }
-    this.roundsCount++;
-    console.log('out point 7')
-    if (loseFlag === 0) {
-      console.log('out point 8')
-      //console.log('board before')
-      //console.log(this.getBoardMap())
-      for (let i = 1; i < stepNum; ++i){
-        //console.log('out point 9')
-        var curX = order[i][0] - '0'
-        var curY = order[i][2] - '0'
-        var nextX = order[i+1][0] - '0'
-        var nextY = order[i+1][2] - '0'
-        this.board.placeAt(field, curX, curY, nextX, nextY,false)
-        this.steps.push([this.nextField, curX, curY, nextX, nextY, 0]);
-        //console.log('board here')
-        //console.log(this.getBoardMap())
-      }
-      var curX = order[stepNum][0] - '0'
-      var curY = order[stepNum][2] - '0'
-      var nextX = order[stepNum+1][0] - '0'
-      var nextY = order[stepNum+1][2] - '0'
-      this.board.placeAt(field, curX, curY, nextX, nextY,true)
-      this.steps.push([this.nextField, curX, curY, nextX, nextY, 0]);
-
-      utils.log('debug', {action: 'place', field: field, position: order.join(' ')});
-      // if (!this.board.hasAvailablePlacement(oppoField)) {
-      //   console.log('out point 10')
-      //   ended = true;
-      //   if (this.nextField === Board.FIELD_BLACK) {
-      //     this.state = Board.BOARD_STATE_WIN_BLACK;
-      //   } else {
-      //     this.state = Board.BOARD_STATE_WIN_WHITE;
-      //   }
-  
-      //   const info = {
-      //     action: 'roundEnd',
-
-      //     board: this.getBoardMap(),
-      //     causedBy: 'hasAvailablePlacement'
-      //   };
-      //   utils.log('debug', info);
-      // } else 
-      if (this.roundsCount >= this.roundLimit) {
-        console.log('out point 11')
-        ended = true;
-        const analytics = this.board.count();
-        if (analytics[Board.FIELD_BLACK] > analytics[Board.FIELD_WHITE]) {
-          this.state = Board.BOARD_STATE_WIN_BLACK;
-        } else if (analytics[Board.FIELD_BLACK] < analytics[Board.FIELD_WHITE]) {
-          this.state = Board.BOARD_STATE_WIN_WHITE;
-        } else {
-          this.state = Board.BOARD_STATE_DRAW;
-        }
-  
-        const info = {
-          action: 'roundEnd',
-          causedBy: 'roundLimit',
-          'roundsCount': this.roundsCount,
-          'roundLimit': this.roundLimit,
-          analytics,
-          board: this.getBoardMap()
-        };
-        utils.log('debug', info);
-      }
-    } else{
-      console.log('out point 12')
-      ended = true
-      if (this.nextField === Board.FIELD_BLACK) {
-        this.state = Board.BOARD_STATE_WIN_WHITE;
-      } else {
-        this.state = Board.BOARD_STATE_WIN_BLACK;
-      }
-    }
-    
-    this.nextField = oppoField;
-
-    return {ended};
-  }
-
-  place1(order) {
-    this.steps.push([this.nextField, x, y, option]);
-    assert(this.state === Board.BOARD_STATE_GOING);
-    if (!this.board.inBound(x, y)) {
-      throw new errors.UserError(`Invalid placement: The position (${x}, ${y}) out of board.`);
-    }
-    if (this.getBoardMap()[x][y] !== this.nextField) {
-      throw new errors.UserError(`Invalid placement: The position (${x}, ${y}) is not your stone.`);
-    }
-
-    if (option !== makyek.OPTION_UP && option !== makyek.OPTION_DOWN
-      && option !== makyek.OPTION_LEFT && option !== makyek.OPTION_RIGHT
-      && option !== makyek.OPTION_UP_LEFT && option !== makyek.OPTION_UP_RIGHT
-      && option !== makyek.OPTION_DOWN_LEFT && option !== makyek.OPTION_DOWN_RIGHT) {
-      throw new errors.UserError(`Invalid option: The option ${option} is not a valid option.`);
-    }
-
+    // get the field
     const field = this.nextField;
     const oppoField = Board.getOppositeField(field);
-
-    if (!this.board.canPlaceAt(field, x, y, option)) {
-      throw new errors.UserError(`Invalid placement: Cannot move stone at position (${x}, ${y}) with option ${option}.`);
+    // check board state
+    assert(this.state === Board.BOARD_STATE_GOING);
+    // check postion is in bound
+    if (!this._inBound(x, y)) {
+      utils.log('debug', { action: 'notInBound', field: field, position: order.join(' ') });
+      if (field === Board.FIELD_BLACK) {
+        this.state = Board.BOARD_STATE_WIN_WHITE;
+      } else {
+        this.state = Board.BOARD_STATE_WIN_BLACK;
+      }
+      throw new errors.UserError(`Invalid placement: The position is out of board.`);
     }
-
-    this.board.placeAt(field, x, y, option);
-    utils.log('debug', {action: 'place', position: [x, y], option, field});
-
+    // check postion is can placed
+    if (!this.board.canPlaceAt(field, x, y)) {
+      utils.log('debug', { action: 'notCanPlaceAt', field: field, position: order.join(' ') });
+      if (field === Board.FIELD_BLACK) {
+        this.state = Board.BOARD_STATE_WIN_WHITE;
+      } else {
+        this.state = Board.BOARD_STATE_WIN_BLACK;
+      }
+      throw new errors.UserError(`Invalid placement: Cannot move.`);
+    }
+    // place stone
+    this.board.placeAt(field, x, y);
     this.roundsCount++;
-    let ended = false;
-    if (!this.board.hasAvailablePlacement(oppoField)) {
-      ended = true;
-      if (this.nextField === Board.FIELD_BLACK) {
+    // 
+    this.steps.push([field, x, y]);
+    utils.log('debug', { action: 'place', field: field, position: order.join(' ') });
+    utils.log('debug', { action: 'getBoardMap', board: this.getBoardMap(), field: field, newState: this.state });
+    // check is win
+    if (this._isFive(x, y, field)) {
+      if (field === Board.FIELD_BLACK) {
         this.state = Board.BOARD_STATE_WIN_BLACK;
       } else {
         this.state = Board.BOARD_STATE_WIN_WHITE;
       }
-
-      const info = {
-        action: 'roundEnd',
-        board: this.getBoardMap(),
-        causedBy: 'hasAvailablePlacement'
-      };
-      utils.log('debug', info);
-    } else if (this.roundsCount >= this.roundLimit) {
-      ended = true;
-      const analytics = this.board.count();
-      if (analytics[Board.FIELD_BLACK] > analytics[Board.FIELD_WHITE]) {
-        this.state = Board.BOARD_STATE_WIN_BLACK;
-      } else if (analytics[Board.FIELD_BLACK] < analytics[Board.FIELD_WHITE]) {
-        this.state = Board.BOARD_STATE_WIN_WHITE;
-      } else {
-        this.state = Board.BOARD_STATE_DRAW;
-      }
-
-      const info = {
-        action: 'roundEnd',
-        causedBy: 'roundLimit',
-        'roundsCount': this.roundsCount,
-        'roundLimit': this.roundLimit,
-        analytics,
-        board: this.getBoardMap()
-      };
-      utils.log('debug', info);
+      return { "ended": true }
     }
-
+    // check is last place
+    if (this._isLastPlacement()) {
+      this.state = Board.BOARD_STATE_DRAW;
+      return { "ended": true }
+    }
     this.nextField = oppoField;
-
-    // console.log(`field: ${field}, round: ${this.roundsCount}`);
-    // for (let i = 0; i < this.size; i++) {
-    //   let str = '';
-    //   for (let j = 0; j < this.size; j++) {
-    //     if (this.getBoardMap()[i][j] === Board.FIELD_BLACK) {
-    //       str += 'O';
-    //     } else if (this.getBoardMap()[i][j] === Board.FIELD_WHITE) {
-    //       str += 'X';
-    //     } else if (this.getBoardMap()[i][j] === Board.FIELD_BLANK) {
-    //       str += '.';
-    //     }
-    //   }
-    //   console.log(str);
-    // }
-
-    return {x, y, option, ended};
+    return { "ended": false };
   }
 }
 

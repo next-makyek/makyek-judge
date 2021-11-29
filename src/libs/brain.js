@@ -134,5 +134,4 @@ export default class Brain extends EventEmitter2 {
     }
     return p;
   }
-
 }
