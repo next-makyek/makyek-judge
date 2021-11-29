@@ -186,12 +186,6 @@ async function main() {
         const resp = await brain.waitForOneResponse(brain.config.moveTimeout, () => {
           brain.writeInstruction('TURN');
         });
-        // const checkM = resp.match(/^(-?\d+) (-?\d+) (-?\d+)$/);
-        // if (!checkM) {
-        // throw new errors.UserError(`Invalid response ${resp}. Expect a placement format as "x y".`);
-        // }
-        //console.log('resp here')
-        //console.log(resp)
 
         const m = resp.split(" ");
         if (m.length !== 2) {
@@ -200,7 +194,6 @@ async function main() {
         m[0] = parseInt(m[0],10)
         m[1] = parseInt(m[1],10)
 
-        // const placement = board.place(parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10));
         const placement = board.place(m);
         lastPlacement = placement;
         anotherBrain.writeInstruction(`PLACE ${resp}`);

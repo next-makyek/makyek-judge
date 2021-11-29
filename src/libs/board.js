@@ -67,9 +67,6 @@ export default class Board {
 
   _isFive(x, y, field) {
     var count = 1;
-    var reset = function() {
-      count = 1;
-    }
     // check vertical
     for (var i = x + 1; true; i++){
       if (i >= this.size) {
@@ -84,7 +81,7 @@ export default class Board {
       }
     }
     for (var i = x - 1; true; i--){
-      if (i <= 0) {
+      if (i < 0) {
         break;
       }
       if (this.board.board[i][y] !== field) {
@@ -96,7 +93,7 @@ export default class Board {
       }
     }
     // check horizontal
-    reset();
+    count = 1;
     for (var i = y + 1; true; i++){
       if (i >= this.size) {
         break;
@@ -110,7 +107,7 @@ export default class Board {
       }
     }
     for (var i = y - 1; true; i--){
-      if (i <= 0) {
+      if (i < 0) {
         break;
       }
       if (this.board.board[x][i] !== field) {
@@ -122,7 +119,7 @@ export default class Board {
       }
     }
     // check //
-    reset();
+    count = 1;
     for (var i = 1; true; i++){
       var new_x = x + i;
       var new_y = y + i;
@@ -140,7 +137,7 @@ export default class Board {
     for (var i = 1; true; i++){
       var new_x = x - i;
       var new_y = y - i;
-      if (new_x <= 0 || new_y <= 0) {
+      if (new_x < 0 || new_y < 0) {
         break;
       }
       if (this.board.board[new_x][new_y] !== field) {
@@ -152,11 +149,11 @@ export default class Board {
       } 
     }
     // check \\
-    reset();
+    count = 1;
     for (var i = 1; true; i++){
       var new_x = x + i;
       var new_y = y - i;
-      if (new_x >= this.size || new_y <= 0) {
+      if (new_x >= this.size || new_y < 0) {
         break;
       }
       if (this.board.board[new_x][new_y] !== field) {
@@ -170,7 +167,7 @@ export default class Board {
     for (var i = 1; true; i++){
       var new_x = x - i;
       var new_y = y + i;
-      if (new_x <= 0 || new_y >= this.size) {
+      if (new_x < 0 || new_y >= this.size) {
         break;
       }
       if (this.board.board[new_x][new_y] !== field) {
@@ -206,7 +203,8 @@ export default class Board {
     assert(this.state === Board.BOARD_STATE_GOING);
     // check postion is in bound
     if (!this._inBound(x, y)) {
-      if (this.nextField === Board.FIELD_BLACK) {
+      utils.log('debug', { action: 'notInBound', field: field, position: order.join(' ') });
+      if (field === Board.FIELD_BLACK) {
         this.state = Board.BOARD_STATE_WIN_WHITE;
       } else {
         this.state = Board.BOARD_STATE_WIN_BLACK;
@@ -215,7 +213,8 @@ export default class Board {
     }
     // check postion is can placed
     if (!this.board.canPlaceAt(field, x, y)) {
-      if (this.nextField === Board.FIELD_BLACK) {
+      utils.log('debug', { action: 'notCanPlaceAt', field: field, position: order.join(' ') });
+      if (field === Board.FIELD_BLACK) {
         this.state = Board.BOARD_STATE_WIN_WHITE;
       } else {
         this.state = Board.BOARD_STATE_WIN_BLACK;
@@ -226,14 +225,15 @@ export default class Board {
     this.board.placeAt(field, x, y);
     this.roundsCount++;
     // 
-    this.steps.push([this.nextField, x, y]);
+    this.steps.push([field, x, y]);
     utils.log('debug', { action: 'place', field: field, position: order.join(' ') });
+    utils.log('debug', { action: 'getBoardMap', board: this.getBoardMap(), field: field, newState: this.state });
     // check is win
     if (this._isFive(x, y, field)) {
-      if (this.nextField === Board.FIELD_BLACK) {
-        this.state = Board.BOARD_STATE_WIN_WHITE;
-      } else {
+      if (field === Board.FIELD_BLACK) {
         this.state = Board.BOARD_STATE_WIN_BLACK;
+      } else {
+        this.state = Board.BOARD_STATE_WIN_WHITE;
       }
       return { "ended": true }
     }
